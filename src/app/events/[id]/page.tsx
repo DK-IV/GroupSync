@@ -28,6 +28,9 @@ export default function EventPlanningRoom() {
   const [guestNameInput, setGuestNameInput] = useState("");
   const [guestLoading, setGuestLoading] = useState(false);
 
+  // Tab State
+  const [activeTab, setActiveTab] = useState<'calendar' | 'brainstorm' | 'agenda'>('calendar');
+
   useEffect(() => {
     const initRoom = async () => {
       // 1. Fetch Event Details first directly to see if room exists
@@ -79,8 +82,8 @@ export default function EventPlanningRoom() {
       // Sign in anonymously
       const { data: authData, error: authError } = await supabase.auth.signInAnonymously();
       
-      if (authError) {
-          alert(`Failed to authenticate as guest: ${authError.message}`);
+      if (authError || !authData.user) {
+          alert(`Failed to authenticate as guest: ${authError?.message || 'Missing user data'}`);
           setGuestLoading(false);
           return;
       }
@@ -249,24 +252,51 @@ export default function EventPlanningRoom() {
 
       </header>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: "4rem" }}>
-         {/* Module A: Communal Calendar */}
-         <CommunalCalendar 
-            eventId={eventId} 
-            participantId={participant.id} 
-            startDate={eventDetails.start_date}
-            endDate={eventDetails.end_date}
-         />
+      {/* Tabs Navigation */}
+      <div style={{ display: "flex", gap: "1rem", borderBottom: "1px solid var(--border-subtle)", marginBottom: "2rem" }}>
+          {(['calendar', 'brainstorm', 'agenda'] as const).map(tab => (
+              <button 
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  style={{ 
+                      background: "transparent", 
+                      border: "none", 
+                      padding: "10px 20px", 
+                      fontSize: "1rem",
+                      fontWeight: "bold",
+                      color: activeTab === tab ? "var(--accent-primary)" : "var(--text-muted)",
+                      borderBottom: activeTab === tab ? "2px solid var(--accent-primary)" : "2px solid transparent",
+                      cursor: "pointer",
+                      textTransform: "capitalize",
+                      transition: "0.2s"
+                  }}
+              >
+                  {tab === 'calendar' ? 'Availability Calendar' : tab === 'brainstorm' ? 'Brainstorming' : 'Final Agenda'}
+              </button>
+          ))}
+      </div>
 
-         <hr style={{ borderTop: "1px solid var(--border-subtle)", borderBottom: "none", margin: 0 }} />
+      <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
+         {activeTab === 'calendar' && (
+             <CommunalCalendar 
+                eventId={eventId} 
+                participantId={participant.id} 
+                startDate={eventDetails.start_date}
+                endDate={eventDetails.end_date}
+             />
+         )}
 
-         {/* Module B: Brainstorming Hub */}
-         <BrainstormModule eventId={eventId} participantId={participant.id} />
+         {activeTab === 'brainstorm' && (
+             <BrainstormModule eventId={eventId} participantId={participant.id} />
+         )}
 
-         <hr style={{ borderTop: "1px solid var(--border-subtle)", borderBottom: "none", margin: 0 }} />
-
-         {/* Module C: Agenda Timeline Builder */}
-         <AgendaModule eventId={eventId} />
+         {activeTab === 'agenda' && (
+             <AgendaModule 
+                 eventId={eventId} 
+                 startDate={eventDetails.start_date}
+                 endDate={eventDetails.end_date}
+             />
+         )}
       </div>
       
     </main>

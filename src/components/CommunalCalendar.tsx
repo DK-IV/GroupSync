@@ -163,8 +163,8 @@ export default function CommunalCalendar({ eventId, participantId, startDate, en
         const { data: evData } = await supabase.from('events').select('agenda_date, agenda_start_time, agenda_end_time').eq('id', eventId).single();
         if (evData) {
             setAgendaDate(evData.agenda_date);
-            setAgendaStart(evData.agenda_start_time);
-            setAgendaEnd(evData.agenda_end_time);
+            setAgendaStart(evData.agenda_start_time || "09:00");
+            setAgendaEnd(evData.agenda_end_time || "17:00");
         }
 
         // Fetch local participant info for labeling
@@ -638,7 +638,7 @@ export default function CommunalCalendar({ eventId, participantId, startDate, en
                         const [sh, sm] = agendaStart.split(':').map(Number);
                         const [eh, em] = agendaEnd.split(':').map(Number);
                         return ((eh * 60 + (em || 0)) - (sh * 60 + (sm || 0))) * (PIXELS_PER_HOUR / 60);
-                    })()}px`, zIndex: 1, border: "2px dashed #fbbf24", borderRadius: "8px", background: "linear-gradient(135deg, rgba(251, 191, 36, 0.1) 0%, rgba(245, 158, 11, 0.2) 100%)", boxShadow: "0 0 20px rgba(245, 158, 11, 0.1)", pointerEvents: "none", display: "flex", justifyContent: "center", alignItems: "center" }}>
+                    })()}px`, zIndex: 10, border: "2px dashed #fbbf24", borderRadius: "8px", background: "linear-gradient(135deg, rgba(251, 191, 36, 0.3) 0%, rgba(245, 158, 11, 0.4) 100%)", boxShadow: "0 0 20px rgba(245, 158, 11, 0.3)", pointerEvents: "none", display: "flex", justifyContent: "center", alignItems: "center" }}>
                         <div style={{ background: "rgba(30,30,30,0.8)", border: "1px solid #fbbf24", color: "#fbbf24", padding: "4px 12px", borderRadius: "12px", fontWeight: "bold", fontSize: "0.85rem", backdropFilter: "blur(4px)", boxShadow: "0 4px 6px rgba(0,0,0,0.3)" }}>
                             ⭐ Finalized Agenda Time
                         </div>

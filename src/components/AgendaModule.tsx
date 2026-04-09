@@ -35,7 +35,7 @@ type AgendaItem = {
     }
 };
 
-export default function AgendaModule({ eventId }: { eventId: string }) {
+export default function AgendaModule({ eventId, startDate, endDate }: { eventId: string, startDate?: string, endDate?: string }) {
     const [items, setItems] = useState<AgendaItem[]>([]);
     const [loading, setLoading] = useState(true);
     
@@ -72,9 +72,30 @@ export default function AgendaModule({ eventId }: { eventId: string }) {
             // First fetch global event settings (start & end time)
             const { data: evData } = await supabase.from('events').select('agenda_date, agenda_start_time, agenda_end_time').eq('id', eventId).single();
             if (evData) {
-                if (evData.agenda_date) setDateStr(evData.agenda_date);
-                if (evData.agenda_start_time) setStartTimeStr(evData.agenda_start_time);
-                if (evData.agenda_end_time) setEndTimeStr(evData.agenda_end_time);
+                let updates: any = {};
+                
+                if (evData.agenda_date) { 
+                    setDateStr(evData.agenda_date); 
+                } else if (startDate) { 
+                    updates.agenda_date = startDate; 
+                    setDateStr(startDate); 
+                }
+
+                if (evData.agenda_start_time) { 
+                    setStartTimeStr(evData.agenda_start_time); 
+                } else { 
+                    updates.agenda_start_time = "09:00"; 
+                }
+
+                if (evData.agenda_end_time) { 
+                    setEndTimeStr(evData.agenda_end_time); 
+                } else { 
+                    updates.agenda_end_time = "17:00"; 
+                }
+
+                if (Object.keys(updates).length > 0) {
+                    await supabase.from('events').update(updates).eq('id', eventId);
+                }
             }
 
             const { data, error } = await supabase
@@ -161,6 +182,8 @@ export default function AgendaModule({ eventId }: { eventId: string }) {
                             <input 
                                 type="date" 
                                 value={dateStr} 
+                                min={startDate || undefined}
+                                max={endDate || undefined}
                                 onChange={e => updateEventBounds('agenda_date', e.target.value)} 
                                 style={{ background: "rgba(255,255,255,0.05)", border: "1px solid var(--border-subtle)", color: "white", padding: "4px 8px", borderRadius: "8px", outline: "none", cursor: "pointer", fontFamily: "inherit" }}
                             />
