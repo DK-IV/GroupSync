@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Google Calendar Clone Prototype</title>
+<style>
+  :root {
+     --bg-main: #ffffff;
+     --bg-modal: rgba(0,0,0,0.5);
+     --border: #dadce0;
+     --text-main: #3c4043;
+     --text-muted: #70757a;
+     --blue-selection: rgba(26, 115, 232, 0.3);
+     --blue-selection-border: #1a73e8;
+     --btn-primary: #1a73e8;
+     --btn-primary-hover: #1b66c9;
+     --time-line: #ea4335;
+     
+     /* Status Colors */
+     --color-green: #34A853;
+     --color-orange: #FBBC05;
+     --color-red: #EA4335;
+  }
+  
+  /* Reset & Base */
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+  body { background: var(--bg-main); color: var(--text-main); overflow-x: hidden; user-select: none; -webkit-user-select: none; }
+  
+  /* Layout Headers */
+  .header { padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; position: sticky; top: 0; z-index: 10; background: #fff; }
+  .create-btn { background: #fff; border: 1px solid var(--border); border-radius: 24px; padding: 8px 16px 8px 12px; font-weight: 500; cursor: pointer; box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3); font-size: 14px; transition: 0.2s; display: flex; gap: 8px; align-items: center; color: var(--text-main); }
+  .create-btn:hover { box-shadow: 0 1px 3px 1px rgba(60,64,67,0.15); background: #f8f9fa; }
+  
+  /* Calendar Grid Framework */
+  .calendar-container { display: flex; height: calc(100vh - 61px); overflow-y: auto; overflow-x: auto; position: relative; }
+  .time-gutter { width: 60px; min-width: 60px; border-right: 1px solid var(--border); position: sticky; left: 0; background: #fff; z-index: 5; padding-top: 50px; }
+  .time-slot-label { height: 60px; text-align: right; padding-right: 8px; color: var(--text-muted); font-size: 11px; transform: translateY(-7px); }
+  
+  .grid-wrapper { flex: 1; min-width: 800px; display: flex; flex-direction: column; }
+  .day-headers { display: flex; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: #fff; z-index: 4; height: 50px; }
+  .day-header { flex: 1; text-align: center; border-right: 1px solid var(--border); font-size: 12px; color: var(--text-muted); text-transform: uppercase; display: flex; flex-direction: column; justify-content: center; font-weight: 500; }
+  
+  /* The Dropzone */
+  .grid { display: flex; flex: 1; cursor: crosshair; position: relative; touch-action: none; /* Crucial for preventing scroll during drag on mobile */ }
+  .day-column { flex: 1; height: 1440px; /* 24hrs * 60px */ border-right: 1px solid var(--border); position: relative; }
+  .day-column { 
+      background-size: 100% 60px;
+      /* Subtle hour dividers */
+      background-image: linear-gradient(to bottom, var(--border) 1px, transparent 1px);
+  }
+  
+  /* Visual Identifiers */
+  .current-time-line { position: absolute; left: 0; right: 0; height: 2px; background: var(--time-line); z-index: 3; pointer-events: none; }
+  .current-time-line::before { content: ''; position: absolute; left: -5px; top: -4px; width: 10px; height: 10px; border-radius: 50%; background: var(--time-line); }
+
+  .selection-block { position: absolute; left: 0; right: 0; background: var(--blue-selection); border: 1px solid var(--blue-selection-border); border-radius: 4px; pointer-events: none; z-index: 6; padding: 4px; font-size: 12px; display: none; color: #1a73e8; font-weight: 500; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+  .event-block { position: absolute; left: 1px; right: 2px; border-radius: 4px; color: white; padding: 4px 8px; font-size: 11px; z-index: 2; overflow: hidden; animation: fadeOpac 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.15); border: 1px solid rgba(255,255,255,0.2); }
+  
+  @keyframes fadeOpac { from { opacity: 0; } to { opacity: 1; } }
+
+  /* Modal Core */
+  .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--bg-modal); z-index: 100; display: none; justify-content: center; align-items: center; }
+  .modal { background: #fff; border-radius: 8px; width: 90%; max-width: 480px; box-shadow: 0 24px 38px 3px rgba(0,0,0,0.14); transform: scale(0.9); opacity: 0; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; }
+  .modal.open { transform: scale(1); opacity: 1; }
+  
+  .modal-body { padding: 24px; display: flex; flex-direction: column; gap: 20px; }
+  .modal input.title { font-size: 24px; border: none; border-bottom: 2px solid #fff; padding: 4px 0; outline: none; width: 100%; transition: 0.2s; color: var(--text-main); }
+  .modal input.title:focus, .modal input.title:hover { border-bottom-color: var(--btn-primary); }
+  
+  .time-inputs { display: flex; gap: 8px; align-items: center; color: var(--text-muted); font-size: 14px; flex-wrap: wrap; }
+  .time-inputs input { border: none; border-radius: 4px; padding: 8px; outline: none; font-size: 14px; color: var(--text-main); background: #f1f3f4; cursor: pointer; transition: 0.2s; }
+  .time-inputs input:hover { background: #e8eaed; }
+  
+  .input-control { border: none; background: #f1f3f4; padding: 12px; border-radius: 4px; width: 100%; outline: none; transition: 0.2s; font-size: 14px; }
+  .input-control:hover, .input-control:focus { background: #e8eaed; }
+  textarea.input-control { height: 80px; resize: vertical; }
+  
+  .swatch-container { display: flex; gap: 12px; flex-wrap: wrap; padding-top: 4px; }
+  .status-option { display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 6px 16px 6px 6px; border-radius: 20px; border: 1px solid transparent; transition: 0.2s; font-size: 14px; color: var(--text-muted); }
+  .status-option:hover { background: #f1f3f4; }
+  .status-option.selected { background: #e8eaed; color: var(--text-main); font-weight: 500; }
+  .swatch { width: 18px; height: 18px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.1); }
+
+  .modal-actions { padding: 16px 24px; display: flex; justify-content: flex-end; gap: 12px; }
+  .btn { padding: 8px 24px; border-radius: 4px; font-weight: 500; cursor: pointer; border: none; font-size: 14px; transition: 0.2s; letter-spacing: 0.25px; }
+  .btn-outline { background: transparent; color: var(--btn-primary); }
+  .btn-outline:hover { background: rgba(26,115,232,0.04); }
+  .btn-fill { background: var(--btn-primary); color: white; box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3); }
+  .btn-fill:hover { background: var(--btn-primary-hover); box-shadow: 0 1px 3px 1px rgba(60,64,67,0.15); }
+</style>
+</head>
+<body>
+
+<header class="header">
+   <button class="create-btn" id="createBtn">
+      <svg width="24" height="24" viewBox="0 0 36 36"><path fill="#34A853" d="M16 16v14h4V20z"></path><path fill="#4285F4" d="M30 16H20l-4 4h14z"></path><path fill="#FBBC05" d="M6 16v4h10l4-4z"></path><path fill="#EA4335" d="M20 16V2h-4v14z"></path><path fill="none" d="M0 0h36v36H0z"></path></svg>
+      Create
+   </button>
+</header>
+
+<div class="calendar-container" id="calendarScroll">
+    <div class="time-gutter" id="timeGutter"></div>
+    <div class="grid-wrapper">
+        <div class="day-headers" id="dayHeaders"></div>
+        <div class="grid" id="gridContainer">
+            <div class="current-time-line" id="currentTimeLine"></div>
+            <!-- Live selection ghost injected dynamically via JS -->
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+    <div class="modal" id="eventModal">
+        <div class="modal-body">
+            <input type="text" class="title" id="modalTitle" placeholder="Add title">
+            <div class="time-inputs">
+               <input type="date" id="modalDate">
+               <input type="time" id="modalStart" step="900">
+               <span>–</span>
+               <input type="time" id="modalEnd" step="900">
+            </div>
+            
+            <textarea class="input-control" id="modalDesc" placeholder="Add description / notes"></textarea>
+            
+            <div class="swatch-container">
+               <div class="status-option selected" data-color="var(--color-green)">
+                   <div class="swatch" style="background: var(--color-green)"></div>
+                   <span>Free</span>
+               </div>
+               <div class="status-option" data-color="var(--color-orange)">
+                   <div class="swatch" style="background: var(--color-orange)"></div>
+                   <span>Maybe</span>
+               </div>
+               <div class="status-option" data-color="var(--color-red)">
+                   <div class="swatch" style="background: var(--color-red)"></div>
+                   <span>Busy</span>
+               </div>
+            </div>
+        </div>
+        <div class="modal-actions" style="justify-content: space-between;">
+            <button class="btn btn-outline" id="modalDelete" style="display: none; color: var(--color-red); border-color: rgba(234,67,53,0.5);">Delete</button>
+            <div style="display: flex; gap: 12px;">
+                <button class="btn btn-outline" id="modalCancel">Cancel</button>
+                <button class="btn btn-fill" id="modalSave">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+/** ENGINE CONFIG */
+const PIXELS_PER_HOUR = 60;
+const PIXELS_PER_MIN = PIXELS_PER_HOUR / 60;
+const SNAP_MINS = 15;
+const SNAP_PIXELS = SNAP_MINS * PIXELS_PER_MIN;
+
+const timeGutter = document.getElementById('timeGutter');
+const dayHeaders = document.getElementById('dayHeaders');
+const gridContainer = document.getElementById('gridContainer');
+const calendarScroll = document.getElementById('calendarScroll');
+
+/** DATE UTILITIES */
+const getDayStart = (d) => { const n = new Date(d); n.setHours(0,0,0,0); return n; };
+const offsetDate = (d, num) => { const n = new Date(d); n.setDate(d.getDate() + num); return n; };
+const formatObjToIsoTime = (d) => d.toTimeString().slice(0,5);
+const formatObjToIsoDate = (d) => {
+    // Handling timezone shifting gracefully for local HTML date inputs
+    const z = d.getTimezoneOffset() * 60000;
+    return new Date(d - z).toISOString().slice(0,10);
+};
+const parseMinsToIsoTime = (mins) => {
+    const h = Math.floor(mins/60).toString().padStart(2,'0');
+    const m = (mins%60).toString().padStart(2,'0');
+    return `${h}:${m}`;
+};
+
+/** GENERATE GRID */
+const today = new Date();
+const startOfWeek = offsetDate(today, -today.getDay()); // Sunday
+
+// Render Gutter (Hours)
+for(let i = 0; i < 24; i++) {
+    const el = document.createElement('div');
+    el.className = 'time-slot-label';
+    if(i === 0) el.style.height = `${PIXELS_PER_HOUR}px`;
+    else {
+        const ampm = i >= 12 ? 'PM' : 'AM';
+        const hr = i % 12 || 12;
+        el.innerText = `${hr} ${ampm}`;
+    }
+    timeGutter.appendChild(el);
+}
+
+// Render Days
+for(let i = 0; i < 7; i++) {
+    const curDate = offsetDate(startOfWeek, i);
+    const dateIso = formatObjToIsoDate(curDate);
+    const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    const isToday = curDate.toDateString() === today.toDateString();
+
+    const head = document.createElement('div');
+    head.className = 'day-header';
+    head.innerHTML = `
+        <span style="color: ${isToday ? 'var(--btn-primary)' : 'var(--text-muted)'}">${dayNames[curDate.getDay()]}</span>
+        <span style="font-size:24px; color: ${isToday ? '#fff' : 'inherit'}; background: ${isToday ? 'var(--btn-primary)' : 'transparent'}; border-radius: 50%; width: 40px; height: 40px; display: inline-flex; justify-content: center; align-items: center; margin: 4px auto 0;">${curDate.getDate()}</span>
+    `;
+    dayHeaders.appendChild(head);
+
+    const col = document.createElement('div');
+    col.className = 'day-column';
+    col.dataset.date = dateIso;
+    gridContainer.appendChild(col);
+}
+
+// Current Time Indicator
+const updateTimeLine = () => {
+    const line = document.getElementById('currentTimeLine');
+    const now = new Date();
+    const minsSinceMidnight = now.getHours() * 60 + now.getMinutes();
+    line.style.top = `${minsSinceMidnight * PIXELS_PER_MIN}px`;
+    
+    line.style.left = `${(100 / 7) * now.getDay()}%`;
+    line.style.width = `${100 / 7}%`;
+};
+updateTimeLine();
+setInterval(updateTimeLine, 60000);
+
+// Auto-scroll to 8 AM on load
+calendarScroll.scrollTop = 8 * PIXELS_PER_HOUR - 20;
+
+/** INTERACTION LOGIC (DRAG & CLICK) */
+let isDragging = false;
+let startY = 0;
+let currentY = 0;
+let targetColumn = null;
+let selectionGhost = null;
+
+const createGhost = (top, height) => {
+    const g = document.createElement('div');
+    g.className = 'selection-block';
+    g.style.display = 'block';
+    g.style.top = top + 'px';
+    g.style.height = height + 'px';
+    return g;
+};
+
+gridContainer.addEventListener('pointerdown', (e) => {
+    if(!e.target.classList.contains('day-column')) return;
+    
+    targetColumn = e.target;
+    targetColumn.setPointerCapture(e.pointerId);
+    
+    const rect = targetColumn.getBoundingClientRect();
+    const dropY = e.clientY - rect.top;
+    
+    // Snap starting point to 15m intervals
+    startY = Math.floor(dropY / SNAP_PIXELS) * SNAP_PIXELS;
+    currentY = startY;
+    
+    isDragging = true;
+    selectionGhost = createGhost(startY, 0);
+    targetColumn.appendChild(selectionGhost);
+});
+
+gridContainer.addEventListener('pointermove', (e) => {
+    if(!isDragging || !targetColumn) return;
+    
+    const rect = targetColumn.getBoundingClientRect();
+    const dropY = e.clientY - rect.top;
+    
+    // Snap current drag to 15m
+    currentY = Math.max(0, Math.round(dropY / SNAP_PIXELS) * SNAP_PIXELS);
+    
+    const top = Math.min(startY, currentY);
+    const height = Math.abs(currentY - startY);
+    
+    selectionGhost.style.top = `${top}px`;
+    selectionGhost.style.height = `${height}px`;
+    selectionGhost.innerHTML = `<span>${parseMinsToIsoTime(top)} – ${parseMinsToIsoTime(top+height)}</span>`;
+});
+
+gridContainer.addEventListener('pointerup', (e) => {
+    if(!isDragging) return;
+    isDragging = false;
+    targetColumn.releasePointerCapture(e.pointerId);
+    
+    let top = Math.min(startY, currentY);
+    let height = Math.abs(currentY - startY);
+    
+    // TRIGGER: Click on empty slot (no drag delta)
+    if(height === 0) {
+        height = PIXELS_PER_HOUR; // Default 1 hour
+        selectionGhost.style.height = `${height}px`;
+    }
+    selectionGhost.innerHTML = `<span>${parseMinsToIsoTime(top)} – ${parseMinsToIsoTime(top+height)}</span>`;
+    
+    const targetDate = targetColumn.dataset.date;
+    openModal(targetDate, top, top + height, selectionGhost);
+});
+
+/** MODAL AND CREATE LOGIC */
+const modalOverlay = document.getElementById('modalOverlay');
+const eventModal = document.getElementById('eventModal');
+const mTitle = document.getElementById('modalTitle');
+const mDate = document.getElementById('modalDate');
+const mStart = document.getElementById('modalStart');
+const mEnd = document.getElementById('modalEnd');
+const mDesc = document.getElementById('modalDesc');
+const btnDelete = document.getElementById('modalDelete');
+let pendingGhost = null;
+let editingBlockRef = null;
+let selectedColor = 'var(--color-green)';
+
+const openModal = (dateStr, startMins, endMins, ghostRef = null) => {
+    pendingGhost = ghostRef;
+    mDate.value = dateStr;
+    mStart.value = parseMinsToIsoTime(startMins);
+    mEnd.value = parseMinsToIsoTime(endMins);
+    mTitle.value = "";
+    
+    modalOverlay.style.display = 'flex';
+    requestAnimationFrame(() => {
+        eventModal.classList.add('open');
+        mTitle.focus();
+    });
+};
+
+const closeModal = () => {
+    eventModal.classList.remove('open');
+    setTimeout(() => {
+        modalOverlay.style.display = 'none';
+        if(pendingGhost) {
+            pendingGhost.remove();
+            pendingGhost = null;
+        }
+        editingBlockRef = null;
+    }, 200);
+};
+
+// TRIGGER: + Create Button
+document.getElementById('createBtn').addEventListener('click', () => {
+    const n = new Date();
+    const dStr = formatObjToIsoDate(n);
+    const startMins = (n.getHours() + 1) * 60; // Next nearest hour
+    openModal(dStr, startMins, startMins + 60);
+});
+
+// Modal Actions
+document.getElementById('modalCancel').addEventListener('click', closeModal);
+modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) closeModal(); });
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modalOverlay.style.display === 'flex') closeModal();
+    if (e.key === 'Enter' && document.activeElement === mTitle) saveEvent();
+});
+
+// Status Options (Colors + Labels)
+document.querySelectorAll('.status-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+        document.querySelectorAll('.status-option').forEach(s => s.classList.remove('selected'));
+        opt.classList.add('selected');
+        selectedColor = opt.dataset.color;
+    });
+});
+
+// Save Function
+const saveEvent = () => {
+    const title = mTitle.value || '(No title)';
+    const desc = mDesc.value;
+    const dateStr = mDate.value;
+    const sStr = mStart.value;
+    const eStr = mEnd.value;
+    
+    const startMins = parseInt(sStr.split(':')[0]) * 60 + parseInt(sStr.split(':')[1]);
+    const endMins = parseInt(eStr.split(':')[0]) * 60 + parseInt(eStr.split(':')[1]);
+    
+    let col = document.querySelector(`.day-column[data-date="${dateStr}"]`);
+    if(col) {
+        const height = endMins - startMins;
+        
+        const ev = editingBlockRef || document.createElement('div');
+        ev.className = 'event-block';
+        ev.style.background = selectedColor;
+        ev.style.top = `${startMins}px`;
+        ev.style.height = `${height}px`;
+        
+        // Store data for future edits
+        ev.dataset.title = title;
+        ev.dataset.desc = desc;
+        ev.dataset.startMins = startMins;
+        ev.dataset.endMins = endMins;
+        ev.dataset.color = selectedColor;
+        
+        const timeDisplay = parseMinsToIsoTime(startMins) + ' – ' + parseMinsToIsoTime(endMins); 
+        const mockUser = "David"; 
+        
+        ev.innerHTML = `<div style="font-weight: 600; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; margin-bottom: 2px;">${title}</div>
+                        <div style="font-size: 11px; opacity: 0.95; font-weight: 500; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">${mockUser}</div>
+                        <div style="font-size: 10px; opacity: 0.8; margin-top: 2px;">${timeDisplay}</div>`;
+                        
+        if (!editingBlockRef) {
+             col.appendChild(ev);
+        } else if (ev.parentElement !== col) {
+             // Moved to a different day entirely
+             col.appendChild(ev);
+        }
+    }
+    
+    if(pendingGhost) pendingGhost.remove();
+    pendingGhost = null;
+    closeModal();
+};
+document.getElementById('modalSave').addEventListener('click', saveEvent);
+
+// Delete Function
+btnDelete.addEventListener('click', () => {
+    if (editingBlockRef) {
+        editingBlockRef.remove();
+    }
+    closeModal();
+});
+
+// Click existing event delegation
+gridContainer.addEventListener('click', (e) => {
+    const block = e.target.closest('.event-block');
+    if (block) {
+        editingBlockRef = block;
+        const dStr = block.parentElement.dataset.date;
+        const sm = parseInt(block.dataset.startMins);
+        const em = parseInt(block.dataset.endMins);
+        
+        mTitle.value = block.dataset.title === '(No title)' ? '' : block.dataset.title;
+        mDesc.value = block.dataset.desc || '';
+        
+        document.querySelectorAll('.status-option').forEach(s => s.classList.remove('selected'));
+        const opt = document.querySelector(`.status-option[data-color="${block.dataset.color}"]`);
+        if(opt) opt.classList.add('selected');
+        selectedColor = block.dataset.color;
+        
+        btnDelete.style.display = 'block';
+        openModal(dStr, sm, em, null);
+    }
+});
+
+</script>
+</body>
+</html>
