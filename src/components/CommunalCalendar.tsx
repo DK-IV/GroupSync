@@ -168,23 +168,32 @@ export default function CommunalCalendar({ eventId, participantId, startDate, en
         }
 
         // Fetch local participant info for labeling
-        const { data: me } = await supabase.from('participants').select('guest_name').eq('id', participantId).single();
-        if (me?.guest_name) setLocalUserName(`${me.guest_name} (You)`);
+        const { data: me } = await supabase.from('participants').select('guest_name, users(display_name)').eq('id', participantId).single();
+        if (me) {
+            const myName = (me.users as any)?.display_name || me.guest_name;
+            if (myName) setLocalUserName(`${myName} (You)`);
+        }
 
         // Fetch blocks + joined participant names
-        const { data: blocks } = await supabase.from('calendar_blocks').select('*, participants(guest_name)').eq('event_id', eventId);
+        const { data: blocks } = await supabase.from('calendar_blocks').select('*, participants(guest_name, users(display_name))').eq('event_id', eventId);
         
         if (blocks) {
-            const formatted = blocks.map(b => ({
-                id: b.id,
-                start_time: b.start_time,
-                end_time: b.end_time,
-                status_color: b.status_color as BlockStatus,
-                custom_note: b.custom_note || "",
-                participant_id: b.participant_id,
-                is_local: b.participant_id === participantId,
-                user_name: b.participant_id === participantId ? `${me?.guest_name || 'You'} (You)` : (b.participants as any)?.guest_name || 'Unknown'
-            }));
+            const formatted = blocks.map(b => {
+                const p = b.participants as any;
+                const displayName = p?.users?.display_name || p?.guest_name || 'Unknown';
+                const myName = (me?.users as any)?.display_name || me?.guest_name || 'You';
+                
+                return {
+                    id: b.id,
+                    start_time: b.start_time,
+                    end_time: b.end_time,
+                    status_color: b.status_color as BlockStatus,
+                    custom_note: b.custom_note || "",
+                    participant_id: b.participant_id,
+                    is_local: b.participant_id === participantId,
+                    user_name: b.participant_id === participantId ? `${myName} (You)` : displayName
+                };
+            });
             setAllBlocks(formatted);
             setLocalEditHash(h => h + 1);
         }

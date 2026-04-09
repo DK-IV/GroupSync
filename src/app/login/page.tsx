@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/utils/supabase";
 import { LogIn, UserPlus } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -13,6 +13,15 @@ export default function LoginPage() {
   
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isAnonymous, setIsAnonymous] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user?.is_anonymous) {
+        setIsAnonymous(true);
+      }
+    });
+  }, []);
 
 
 
@@ -22,15 +31,32 @@ export default function LoginPage() {
       setLoading(true);
       setError(null);
       setSuccessMsg(null);
-      const { error, data } = await supabase.auth.signUp({
-        email,
-        password,
-      });
-
-      if (error) throw error;
       
-      // If auto-confirm is off in Supabase, data.session will be null
-      if (data?.session) {
+      let resError;
+      let sessionData = null;
+
+      if (isAnonymous) {
+          // Upgrade the anonymous user to a permanent account
+          const { error } = await supabase.auth.updateUser({
+            email,
+            password,
+          });
+          resError = error;
+          sessionData = true; // They are already logged in
+      } else {
+          // Normal sign-up flow
+          const { error, data } = await supabase.auth.signUp({
+            email,
+            password,
+          });
+          resError = error;
+          sessionData = data?.session;
+      }
+
+      if (resError) throw resError;
+      
+      // If auto-confirm is off in Supabase, data.session will be null for fresh sign-ups
+      if (sessionData) {
           router.push("/dashboard");
       } else {
           setSuccessMsg("Check your email for the confirmation link!");
