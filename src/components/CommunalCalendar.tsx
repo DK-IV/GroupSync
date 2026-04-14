@@ -13,9 +13,9 @@ const SNAP_MINS = 15;
 const SNAP_PIXELS = SNAP_MINS * PIXELS_PER_MIN;
 
 const COLOR_MAP = {
-    green: "var(--color-green, #34A853)",
-    orange: "var(--color-orange, #FBBC05)",
-    red: "var(--color-red, #EA4335)"
+    green: "var(--neon-lime, #39ff14)",
+    orange: "var(--neon-amber, #ffb000)",
+    red: "var(--neon-red, #ff003c)"
 };
 
 const getNext7Days = () => {
@@ -580,9 +580,9 @@ export default function CommunalCalendar({ eventId, participantId, startDate, en
                 onPointerMove={handlePointerMove}
                 onPointerUp={handlePointerUp}
                 style={{
-                   flex: 1, height: "1440px", borderRight: "1px solid var(--border-subtle)", position: "relative",
+                   flex: 1, height: "1440px", borderRight: "1px solid rgba(255,255,255,0.05)", position: "relative",
                    backgroundSize: "100% 60px", touchAction: "none",
-                   backgroundImage: "linear-gradient(to bottom, var(--border-subtle) 1px, transparent 1px)"
+                   backgroundImage: "linear-gradient(to bottom, rgba(255,255,255,0.03) 1px, transparent 1px)"
                 }}
             >
                 {visualBlocks.map((vb, i) => {
@@ -595,13 +595,13 @@ export default function CommunalCalendar({ eventId, participantId, startDate, en
                             {activeColors.map(col => {
                                 const isLocal = vb.data[col].isLocal;
                                 const bData = vb.data[col];
-                                const borderCol = isLocal ? "1px solid rgba(255,255,255,0.6)" : "1px solid rgba(0,0,0,0.1)";
+                                const isLocalBorder = isLocal ? "1px solid rgba(255,255,255,0.9)" : "1px solid transparent";
                                 const bgCol = COLOR_MAP[col];
                                 
                                 return (
                                     <div 
                                         key={col} 
-                                        className="event-piece animate-in"
+                                        className="event-piece animate-in shadow-[0_0_10px_rgba(0,0,0,0.5)]"
                                         onClick={(e) => {
                                             if (isLocal && bData.localId) {
                                                 e.stopPropagation();
@@ -609,17 +609,17 @@ export default function CommunalCalendar({ eventId, participantId, startDate, en
                                             }
                                         }}
                                         style={{ 
-                                            flex: 1, background: bgCol, borderRadius: "4px", padding: "4px 6px", overflow: "hidden", 
-                                            boxShadow: "0 1px 2px rgba(0,0,0,0.2)", pointerEvents: isLocal ? "auto" : "none",
-                                            cursor: isLocal ? "pointer" : "default", border: borderCol,
+                                            flex: 1, background: bgCol, borderRadius: "2px", padding: "4px 6px", overflow: "hidden", 
+                                            pointerEvents: isLocal ? "auto" : "none",
+                                            cursor: isLocal ? "pointer" : "default", border: isLocalBorder,
                                             animation: "fadeOpac 0.2s"
                                         }}
                                         title={bData.localNote || ""}
                                     >
-                                        <div style={{ fontWeight: 600, fontSize: "11px", color: "white", marginBottom: "2px" }}>
+                                        <div style={{ fontWeight: 800, fontSize: "11px", color: col === 'green' || col === 'orange' ? 'black' : 'white', marginBottom: "2px", textTransform: 'uppercase', letterSpacing: '1px' }}>
                                             {col === 'green' ? 'Free' : col === 'orange' ? 'Maybe' : 'Busy'}
                                         </div>
-                                        <div style={{ fontSize: "10px", opacity: 0.9, color: "white", lineHeight: 1.2 }}>
+                                        <div style={{ fontSize: "10px", opacity: 0.9, color: col === 'green' || col === 'orange' ? 'black' : 'white', lineHeight: 1.2, fontWeight: 500 }}>
                                             {Array.from(bData.names).join(', ')}
                                         </div>
                                     </div>
@@ -694,13 +694,13 @@ export default function CommunalCalendar({ eventId, participantId, startDate, en
                     <div style={{ width: "60px", minWidth: "60px", borderRight: "1px solid var(--border-subtle)", borderBottom: "1px solid var(--border-subtle)", position: "sticky", left: 0, background: "var(--bg-base)", zIndex: 11 }}></div>
                     
                     {/* Day Headers (Scrolls X freely) */}
-                    <div style={{ display: "flex", flex: 1, minWidth: "700px", borderBottom: "1px solid var(--border-subtle)", background: "var(--bg-base)" }}>
+                    <div style={{ display: "flex", flex: 1, minWidth: "700px", borderBottom: "1px solid rgba(255,255,255,0.05)" }} className="bg-dashboard-bg">
                         {days.map(d => {
                             const isToday = d.toDateString() === new Date().toDateString();
                             return (
-                                <div key={d.toISOString()} style={{ flex: 1, textAlign: "center", borderRight: "1px solid var(--border-subtle)", fontSize: "12px", color: "var(--text-muted)", textTransform: "uppercase", display: "flex", flexDirection: "column", justifyContent: "center", padding: "4px 0", height: "50px" }}>
-                                    <span style={{ color: isToday ? "var(--btn-primary)" : "inherit", lineHeight: 1 }}>{['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()]}</span>
-                                    <span style={{ fontSize: "20px", color: isToday ? "white" : "var(--text-main)", background: isToday ? "var(--btn-primary)" : "transparent", borderRadius: "50%", width: "26px", height: "26px", display: "inline-flex", justifyContent: "center", alignItems: "center", margin: "2px auto 0", lineHeight: 1 }}>{d.getDate()}</span>
+                                <div key={d.toISOString()} style={{ flex: 1, textAlign: "center", borderRight: "1px solid rgba(255,255,255,0.05)", fontSize: "12px", color: "var(--text-muted)", textTransform: "uppercase", display: "flex", flexDirection: "column", justifyContent: "center", padding: "4px 0", height: "50px", fontWeight: "700", fontFamily: "sans-serif", letterSpacing: "1px" }}>
+                                    <span style={{ color: isToday ? "var(--neon-blue, #00e5ff)" : "inherit", lineHeight: 1 }}>{['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()]}</span>
+                                    <span style={{ fontSize: "20px", color: isToday ? "black" : "var(--text-main)", background: isToday ? "var(--neon-blue, #00e5ff)" : "transparent", borderRadius: "50%", width: "28px", height: "28px", display: "inline-flex", justifyContent: "center", alignItems: "center", margin: "2px auto 0", lineHeight: 1 }}>{d.getDate()}</span>
                                 </div>
                             )
                         })}

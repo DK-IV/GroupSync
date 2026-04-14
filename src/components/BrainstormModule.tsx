@@ -246,7 +246,7 @@ export default function BrainstormModule({ eventId, participantId }: { eventId: 
 
       {/* The Dynamic Ideas Board */}
       {ideas.length > 0 && (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "1.5rem" }}>
+          <div className="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6">
             {ideas.map((idea, idx) => (
               <IdeaCard 
                 key={idea.id} 
@@ -305,7 +305,7 @@ function IdeaCard({ idea, idx, participantId, eventId, currentRank, maxRank, occ
   };
 
   return (
-    <div className={`glass-panel delay-${(idx % 3) + 1} animate-in`} style={{ display: "flex", flexDirection: "column", overflow: "hidden", padding: "0", position: "relative" }}>
+    <div className={`bg-surface-bg border border-white/5 rounded-2xl delay-${(idx % 3) + 1} animate-in flex flex-col overflow-hidden relative shadow-lg break-inside-avoid hover:shadow-xl transition-shadow duration-300`}>
       
       {/* Tally Badge Overlay */}
       {isTallied && (
@@ -324,21 +324,21 @@ function IdeaCard({ idea, idx, participantId, eventId, currentRank, maxRank, occ
         <img 
           src={idea.image_url} 
           alt={idea.title} 
-          style={{ width: "100%", height: "180px", objectFit: "cover", borderBottom: "1px solid var(--border-subtle)" }} 
+          className="w-full h-[220px] object-cover" 
         />
       ) : (
-        <div style={{ height: "180px", background: "rgba(255,255,255,0.02)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-muted)" }}>
-          No Preview Map
+        <div className="h-[220px] bg-white/5 flex items-center justify-center text-gray-400 font-medium">
+          No Preview
         </div>
       )}
       
       {/* Meta Content Section */}
-      <div style={{ padding: "1.5rem", display: "flex", flexDirection: "column", gap: "0.5rem", flex: 1 }}>
+      <div className="p-6 flex flex-col gap-3 flex-1 bg-black/20">
         
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "8px" }}>
-           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        <div className="flex justify-between items-start gap-2">
+           <div className="flex items-center gap-2">
             {idea.provider_name && (
-              <span style={{ fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "1px", color: "var(--accent-secondary)", fontWeight: 600 }}>
+              <span className="text-xs uppercase tracking-widest text-accent-secondary font-bold">
                 {idea.provider_name}
               </span>
             )}
@@ -440,13 +440,13 @@ function VotingControls({ ideaId, participantId, eventId, currentRank, maxRank, 
   };
 
   return (
-     <div style={{ padding: "1rem 1.5rem", borderTop: "1px solid var(--border-subtle)", background: "rgba(0,0,0,0.2)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <span style={{ fontSize: "0.85rem", color: "var(--text-muted)", fontWeight: 500 }}>Rank Choice:</span>
+     <div className={`p-4 border-t border-white/5 flex justify-between items-center transition-colors duration-300 ${currentRank === 1 ? 'bg-neon-lime/10' : 'bg-black/30'}`}>
+        <span className="text-sm text-gray-400 font-medium">Rank Choice:</span>
         <select
             disabled={isSyncing}
             value={currentRank || 0}
             onChange={(e) => handleVote(Number(e.target.value))}
-            style={{ background: "rgba(255,255,255,0.1)", border: "1px solid var(--border-subtle)", color: "white", padding: "6px 10px", borderRadius: "8px", fontSize: "0.85rem", outline: "none", cursor: "pointer", fontWeight: "bold" }}
+            className={`px-3 py-2 rounded-lg text-sm font-bold outline-none cursor-pointer border transition-colors ${currentRank === 1 ? 'bg-neon-lime text-black border-neon-lime shadow-[0_0_15px_rgba(57,255,20,0.4)]' : 'bg-white/10 text-white border-white/10'}`}
         >
             <option value={0} style={{ color: "black", fontWeight: "normal" }}>-- Blank --</option>
             {Array.from({ length: maxRank }, (_, i) => i + 1).map(n => {

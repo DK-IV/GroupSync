@@ -163,41 +163,45 @@ export default function DashboardPage() {
 
       {/* Main Events List */}
       {events.length === 0 ? (
-          <div className="glass-panel animate-in" style={{ padding: "3rem", textAlign: "center" }}>
-            <div style={{ background: "rgba(255,255,255,0.05)", width: "64px", height: "64px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1.5rem" }}>
-              <CalendarPlus size={32} color="var(--text-muted)" />
+          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-12 text-center animate-in shadow-2xl">
+            <div className="bg-white/5 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
+              <CalendarPlus size={32} className="text-gray-400" />
             </div>
-            <h2>No Upcoming Events</h2>
-            <p style={{ maxWidth: "400px", margin: "0 auto" }}>You have not created or joined any planning sessions yet. Let's get started by creating your first event!</p>
+            <h2 className="text-2xl font-semibold mb-2">No Upcoming Events</h2>
+            <p className="max-w-md mx-auto text-gray-400">You have not created or joined any planning sessions yet. Let's get started by creating your first event!</p>
           </div>
       ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "1.5rem" }}>
+          <div className="flex overflow-x-auto snap-x snap-mandatory space-x-6 pb-8 pt-4 px-4 -mx-4 hide-scrollbar">
             {events.map((ev, index) => (
-                <Link key={ev.id} href={`/events/${ev.id}`} style={{ textDecoration: "none" }}>
+                <Link key={ev.id} href={`/events/${ev.id}`} className="block shrink-0 w-[340px] snap-center">
                     <div 
-                        className={`glass-panel delay-${(index % 3) + 1} animate-in`} 
-                        style={{ padding: "1.5rem", display: "flex", cursor: "pointer", flexDirection: "column", gap: "1rem", transition: "transform 0.2s, border-color 0.2s" }}
+                        className={`bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 flex flex-col gap-6 cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:bg-white/10 hover:shadow-2xl hover:border-white/20 delay-${(index % 3) + 1} animate-in relative overflow-hidden group`} 
                     >
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                            <h3 style={{ margin: 0, color: "var(--text-main)", display: "-webkit-box", WebkitLineClamp: 1, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                        <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-accent-secondary to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        <div className="flex justify-between items-start">
+                            <h3 className="m-0 text-white text-xl font-medium tracking-tight line-clamp-1">
                                 {ev.title || "Untitled Session"}
                             </h3>
-                            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                            <div className="flex items-center gap-2">
                                 {ev.host_id === user.id && (
                                     <button 
                                       onClick={(e) => handleDeleteEvent(e, ev.id)}
-                                      style={{ background: "rgba(220, 38, 38, 0.1)", border: "1px solid rgba(220, 38, 38, 0.3)", color: "#fca5a5", cursor: "pointer", padding: "6px", borderRadius: "6px", display: "flex" }}
+                                      className="bg-red-500/10 border border-red-500/30 text-red-400 p-2 rounded-lg flex hover:bg-red-500/20 transition-colors"
                                       title="Delete Session"
                                     >
                                         <Trash2 size={16} />
                                     </button>
                                 )}
-                                <ChevronRight size={18} color="var(--accent-secondary)" style={{ marginLeft: "4px" }} />
                             </div>
                         </div>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                            <span style={{ fontSize: "0.85rem", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "1px" }}>Status: {ev.status}</span>
-                            {/* In a real app we'd fetch participant counts here */}
+                        <div className="flex justify-between items-center mt-auto">
+                            <span className="text-sm text-gray-400 uppercase tracking-widest font-semibold flex items-center gap-2">
+                                <span className={`w-2 h-2 rounded-full ${ev.status === 'planning' ? 'bg-orange-400' : 'bg-green-400'}`}></span>
+                                {ev.status}
+                            </span>
+                            <div className="bg-white/5 p-2 rounded-full group-hover:bg-accent-secondary/20 transition-colors">
+                                <ChevronRight size={18} className="text-accent-secondary" />
+                            </div>
                         </div>
                     </div>
                 </Link>

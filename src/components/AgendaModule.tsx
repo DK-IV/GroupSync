@@ -264,22 +264,21 @@ function SortableAgendaCard({ item, timeLabel, isOverflowing, onUpdateDuration, 
         transform: CSS.Transform.toString(transform),
         transition,
         zIndex: isDragging ? 100 : 1,
-        opacity: isDragging ? 0.8 : 1,
-        background: isDragging ? "rgba(255,255,255,0.1)" : (isOverflowing ? "rgba(239, 68, 68, 0.05)" : "var(--bg-surface)"),
-        border: `1px solid ${isOverflowing ? "#ef4444" : "var(--border-subtle)"}`,
-        borderRadius: "12px",
-        padding: "16px",
-        display: "flex",
-        alignItems: "center",
-        gap: "16px",
-        boxShadow: isDragging ? "0 10px 20px rgba(0,0,0,0.3)" : "none"
     };
+
+    const containerStyle = `flex items-center gap-4 p-4 rounded-xl transition-all duration-200 border-l-[3px] ${
+        isDragging 
+            ? 'opacity-80 bg-black/60 shadow-[0_0_15px_rgba(0,229,255,0.3)] border-neon-blue'
+            : isOverflowing 
+                ? 'bg-red-500/5 hover:bg-black/40 border-neon-red' 
+                : 'bg-black/20 hover:bg-black/40 border-transparent hover:border-white/20'
+    } border-y border-r border-y-white/5 border-r-white/5 backdrop-blur-md`;
 
     // Styling logic to forcefully fix browser/OS dropdown white-on-white text rendering issues
     const optionStyle = { color: "#000", background: "#fff" };
 
     return (
-        <div ref={setNodeRef} style={style}>
+        <div ref={setNodeRef} style={style} className={containerStyle}>
             <div {...attributes} {...listeners} style={{ cursor: "grab", color: "var(--text-muted)", padding: "4px" }}>
                 <GripVertical size={20} />
             </div>
