@@ -13,9 +13,9 @@ const SNAP_MINS = 15;
 const SNAP_PIXELS = SNAP_MINS * PIXELS_PER_MIN;
 
 const COLOR_MAP = {
-    green: "var(--neon-lime, #39ff14)",
-    orange: "var(--neon-amber, #ffb000)",
-    red: "var(--neon-red, #ff003c)"
+    green: "var(--neon-lime, #86efac)", // Soft green (green-300)
+    orange: "var(--neon-amber, #fbbf24)", // Soft amber (amber-400)
+    red: "var(--neon-red, #fb7185)"     // Soft red (rose-400)
 };
 
 const getNext7Days = () => {
@@ -163,8 +163,8 @@ export default function CommunalCalendar({ eventId, participantId, startDate, en
         const { data: evData } = await supabase.from('events').select('agenda_date, agenda_start_time, agenda_end_time').eq('id', eventId).single();
         if (evData) {
             setAgendaDate(evData.agenda_date);
-            setAgendaStart(evData.agenda_start_time || "09:00");
-            setAgendaEnd(evData.agenda_end_time || "17:00");
+            setAgendaStart(evData.agenda_start_time || "");
+            setAgendaEnd(evData.agenda_end_time || "");
         }
 
         // Fetch local participant info for labeling
@@ -580,9 +580,9 @@ export default function CommunalCalendar({ eventId, participantId, startDate, en
                 onPointerMove={handlePointerMove}
                 onPointerUp={handlePointerUp}
                 style={{
-                   flex: 1, height: "1440px", borderRight: "1px solid rgba(255,255,255,0.05)", position: "relative",
+                   flex: 1, height: "1440px", borderRight: "1px solid var(--subtle-gray)", position: "relative",
                    backgroundSize: "100% 60px", touchAction: "none",
-                   backgroundImage: "linear-gradient(to bottom, rgba(255,255,255,0.03) 1px, transparent 1px)"
+                   backgroundImage: "linear-gradient(to bottom, var(--border-subtle) 1px, transparent 1px)"
                 }}
             >
                 {visualBlocks.map((vb, i) => {
@@ -629,7 +629,7 @@ export default function CommunalCalendar({ eventId, participantId, startDate, en
                     )
                 })}
 
-                {/* Finalized Agenda Overlay (Gold Gradient) */}
+                {/* Finalised Agenda Overlay (Gold Gradient) */}
                 {agendaDate === dateIso && agendaStart && agendaEnd && (
                     <div style={{ position: "absolute", left: "-4px", right: "-4px", top: `${(() => {
                         const [h, m] = agendaStart.split(':').map(Number);
@@ -639,8 +639,8 @@ export default function CommunalCalendar({ eventId, participantId, startDate, en
                         const [eh, em] = agendaEnd.split(':').map(Number);
                         return ((eh * 60 + (em || 0)) - (sh * 60 + (sm || 0))) * (PIXELS_PER_HOUR / 60);
                     })()}px`, zIndex: 10, border: "2px dashed #fbbf24", borderRadius: "8px", background: "linear-gradient(135deg, rgba(251, 191, 36, 0.3) 0%, rgba(245, 158, 11, 0.4) 100%)", boxShadow: "0 0 20px rgba(245, 158, 11, 0.3)", pointerEvents: "none", display: "flex", justifyContent: "center", alignItems: "center" }}>
-                        <div style={{ background: "rgba(30,30,30,0.8)", border: "1px solid #fbbf24", color: "#fbbf24", padding: "4px 12px", borderRadius: "12px", fontWeight: "bold", fontSize: "0.85rem", backdropFilter: "blur(4px)", boxShadow: "0 4px 6px rgba(0,0,0,0.3)" }}>
-                            ⭐ Finalized Agenda Time
+                        <div style={{ background: "var(--bg-surface)", border: "1px solid #fbbf24", color: "#fbbf24", padding: "4px 12px", borderRadius: "12px", fontWeight: "bold", fontSize: "0.85rem", backdropFilter: "blur(4px)", boxShadow: "0 4px 6px rgba(0,0,0,0.3)" }}>
+                            ⭐ Finalised Agenda Time
                         </div>
                     </div>
                 )}
@@ -652,9 +652,9 @@ export default function CommunalCalendar({ eventId, participantId, startDate, en
         <div className="glass-panel animate-in" style={{ padding: "0 0 0 0", display: "flex", flexDirection: "column", background: "var(--bg-base)", overflow: "hidden", borderRadius: "12px", border: "1px solid var(--border-subtle)" }}>
             
             {/* Action Header */}
-            <div style={{ padding: "16px", borderBottom: "1px solid var(--border-subtle)", display: "flex", justifyContent: "space-between", alignItems: "center", background: "rgba(255,255,255,0.02)" }}>
+            <div style={{ padding: "16px", borderBottom: "1px solid var(--border-subtle)", display: "flex", justifyContent: "space-between", alignItems: "center", background: "var(--subtle-gray)" }}>
                  <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                     <button className="btn-outline" onClick={() => initModalNew(formatObjToIsoDate(new Date()), (new Date().getHours()+1)*60, (new Date().getHours()+2)*60)} style={{ display: "flex", alignItems: "center", gap: "8px", background: "rgba(255,255,255,0.05)", border: "1px solid var(--border-subtle)", padding: "8px 16px", borderRadius: "24px", color: "var(--text-main)", cursor: "pointer", transition: "0.2s" }} onMouseOver={e => e.currentTarget.style.background = "rgba(255,255,255,0.1)"} onMouseOut={e => e.currentTarget.style.background = "rgba(255,255,255,0.05)"}>
+                     <button className="btn-outline" onClick={() => initModalNew(formatObjToIsoDate(new Date()), (new Date().getHours()+1)*60, (new Date().getHours()+2)*60)} style={{ display: "flex", alignItems: "center", gap: "8px", background: "var(--subtle-gray)", border: "1px solid var(--border-subtle)", padding: "8px 16px", borderRadius: "24px", color: "var(--text-main)", cursor: "pointer", transition: "0.2s" }} onMouseOver={e => e.currentTarget.style.background = "rgba(128,128,128,0.1)"} onMouseOut={e => e.currentTarget.style.background = "var(--subtle-gray)"}>
                          + Create Event
                      </button>
 
@@ -671,8 +671,8 @@ export default function CommunalCalendar({ eventId, participantId, startDate, en
                      </button>
 
                      <div style={{ display: "flex", gap: "4px", alignItems: "center", marginLeft: "12px" }}>
-                         <button disabled={currentWeekOffset === 0} onClick={() => setCurrentWeekOffset(prev => Math.max(0, prev - 1))} style={{ width: "32px", height: "32px", borderRadius: "50%", border: "1px solid var(--border-subtle)", background: "rgba(255,255,255,0.05)", color: currentWeekOffset === 0 ? "var(--text-muted)" : "var(--text-main)", display: "flex", alignItems: "center", justifyContent: "center", cursor: currentWeekOffset === 0 ? "not-allowed" : "pointer" }}>&lt;</button>
-                         <button disabled={!hasNextWeek} onClick={() => setCurrentWeekOffset(prev => prev + 1)} style={{ width: "32px", height: "32px", borderRadius: "50%", border: "1px solid var(--border-subtle)", background: "rgba(255,255,255,0.05)", color: !hasNextWeek ? "var(--text-muted)" : "var(--text-main)", display: "flex", alignItems: "center", justifyContent: "center", cursor: !hasNextWeek ? "not-allowed" : "pointer" }}>&gt;</button>
+                         <button disabled={currentWeekOffset === 0} onClick={() => setCurrentWeekOffset(prev => Math.max(0, prev - 1))} style={{ width: "32px", height: "32px", borderRadius: "50%", border: "1px solid var(--border-subtle)", background: "var(--subtle-gray)", color: currentWeekOffset === 0 ? "var(--text-muted)" : "var(--text-main)", display: "flex", alignItems: "center", justifyContent: "center", cursor: currentWeekOffset === 0 ? "not-allowed" : "pointer" }}>&lt;</button>
+                         <button disabled={!hasNextWeek} onClick={() => setCurrentWeekOffset(prev => prev + 1)} style={{ width: "32px", height: "32px", borderRadius: "50%", border: "1px solid var(--border-subtle)", background: "var(--subtle-gray)", color: !hasNextWeek ? "var(--text-muted)" : "var(--text-main)", display: "flex", alignItems: "center", justifyContent: "center", cursor: !hasNextWeek ? "not-allowed" : "pointer" }}>&gt;</button>
                      </div>
                  </div>
                  
@@ -694,11 +694,11 @@ export default function CommunalCalendar({ eventId, participantId, startDate, en
                     <div style={{ width: "60px", minWidth: "60px", borderRight: "1px solid var(--border-subtle)", borderBottom: "1px solid var(--border-subtle)", position: "sticky", left: 0, background: "var(--bg-base)", zIndex: 11 }}></div>
                     
                     {/* Day Headers (Scrolls X freely) */}
-                    <div style={{ display: "flex", flex: 1, minWidth: "700px", borderBottom: "1px solid rgba(255,255,255,0.05)" }} className="bg-dashboard-bg">
+                    <div style={{ display: "flex", flex: 1, minWidth: "700px", borderBottom: "1px solid var(--subtle-gray)" }} className="bg-dashboard-bg">
                         {days.map(d => {
                             const isToday = d.toDateString() === new Date().toDateString();
                             return (
-                                <div key={d.toISOString()} style={{ flex: 1, textAlign: "center", borderRight: "1px solid rgba(255,255,255,0.05)", fontSize: "12px", color: "var(--text-muted)", textTransform: "uppercase", display: "flex", flexDirection: "column", justifyContent: "center", padding: "4px 0", height: "50px", fontWeight: "700", fontFamily: "sans-serif", letterSpacing: "1px" }}>
+                                <div key={d.toISOString()} style={{ flex: 1, textAlign: "center", borderRight: "1px solid var(--subtle-gray)", fontSize: "12px", color: "var(--text-muted)", textTransform: "uppercase", display: "flex", flexDirection: "column", justifyContent: "center", padding: "4px 0", height: "50px", fontWeight: "700", fontFamily: "sans-serif", letterSpacing: "1px" }}>
                                     <span style={{ color: isToday ? "var(--neon-blue, #00e5ff)" : "inherit", lineHeight: 1 }}>{['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()]}</span>
                                     <span style={{ fontSize: "20px", color: isToday ? "black" : "var(--text-main)", background: isToday ? "var(--neon-blue, #00e5ff)" : "transparent", borderRadius: "50%", width: "28px", height: "28px", display: "inline-flex", justifyContent: "center", alignItems: "center", margin: "2px auto 0", lineHeight: 1 }}>{d.getDate()}</span>
                                 </div>
@@ -728,7 +728,7 @@ export default function CommunalCalendar({ eventId, participantId, startDate, en
             {/* Modal */}
             {isModalOpen && (
                 <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={(e) => { if (e.target === e.currentTarget) handleCloseModal(); }}>
-                    <div className="glass-panel animate-in" style={{ padding: "1.5rem", width: "90%", maxWidth: "420px", position: "relative", display: "flex", flexDirection: "column", gap: "1.2rem", background: "rgba(20,20,20,0.95)", border: "1px solid var(--border-subtle)", borderRadius: "12px", boxShadow: "0 24px 38px 3px rgba(0,0,0,0.4)" }}>
+                    <div className="glass-panel animate-in" style={{ padding: "1.5rem", width: "90%", maxWidth: "420px", position: "relative", display: "flex", flexDirection: "column", gap: "1.2rem", background: "var(--bg-surface)", border: "1px solid var(--border-subtle)", borderRadius: "12px", boxShadow: "0 24px 38px 3px rgba(0,0,0,0.4)" }}>
                         <button onClick={handleCloseModal} style={{ position: "absolute", top: 15, right: 15, background: "transparent", border: "none", color: "var(--text-muted)", cursor: "pointer" }}><X size={18} /></button>
                         
                         <h3 style={{ margin: 0, color: "var(--text-main)", fontSize: "1.2rem", display: "flex", alignItems: "center", gap: "8px" }}>
@@ -741,7 +741,7 @@ export default function CommunalCalendar({ eventId, participantId, startDate, en
                                  <button 
                                      key={col}
                                      onClick={() => setModalColor(col)} 
-                                     style={{ flex: 1, padding: "8px", borderRadius: "8px", border: modalColor === col ? `2px solid var(--text-main)` : "2px solid transparent", background: COLOR_MAP[col], color: "white", cursor: "pointer", fontWeight: 600, transition: "0.2s" }}
+                                     style={{ flex: 1, padding: "8px", borderRadius: "8px", border: modalColor === col ? `2px solid var(--text-main)` : "2px solid transparent", background: COLOR_MAP[col], color: "var(--text-main)", cursor: "pointer", fontWeight: 600, transition: "0.2s" }}
                                  >{label}</button>
                              ))}
                         </div>
@@ -750,18 +750,18 @@ export default function CommunalCalendar({ eventId, participantId, startDate, en
                         <div style={{ display: "flex", gap: "1rem" }}>
                             <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "4px" }}>
                                 <label style={{ fontSize: "0.75rem", color: "var(--text-muted)", textTransform: "uppercase" }}>Start</label>
-                                <input type="time" step="900" style={{ border: "1px solid var(--border-subtle)", background: "rgba(255,255,255,0.05)", padding: "10px", borderRadius: "4px", color: "white" }} value={modalStart} onChange={(e) => setModalStart(e.target.value)} />
+                                <input type="time" step="900" style={{ border: "1px solid var(--border-subtle)", background: "var(--subtle-gray)", padding: "10px", borderRadius: "4px", color: "var(--text-main)" }} value={modalStart} onChange={(e) => setModalStart(e.target.value)} />
                             </div>
                             <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "4px" }}>
                                 <label style={{ fontSize: "0.75rem", color: "var(--text-muted)", textTransform: "uppercase" }}>End</label>
-                                <input type="time" step="900" style={{ border: "1px solid var(--border-subtle)", background: "rgba(255,255,255,0.05)", padding: "10px", borderRadius: "4px", color: "white" }} value={modalEnd} onChange={(e) => setModalEnd(e.target.value)} />
+                                <input type="time" step="900" style={{ border: "1px solid var(--border-subtle)", background: "var(--subtle-gray)", padding: "10px", borderRadius: "4px", color: "var(--text-main)" }} value={modalEnd} onChange={(e) => setModalEnd(e.target.value)} />
                             </div>
                         </div>
 
                         {/* Note area */}
                         <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
                             <label style={{ fontSize: "0.75rem", color: "var(--text-muted)", textTransform: "uppercase" }}>Notes (Optional)</label>
-                            <input type="text" placeholder="e.g. Call me if absolutely needed" value={modalNote} onChange={(e) => setModalNote(e.target.value)} style={{ border: "1px solid var(--border-subtle)", background: "rgba(255,255,255,0.05)", padding: "10px", borderRadius: "4px", color: "white" }} />
+                            <input type="text" placeholder="e.g. Call me if absolutely needed" value={modalNote} onChange={(e) => setModalNote(e.target.value)} style={{ border: "1px solid var(--border-subtle)", background: "var(--subtle-gray)", padding: "10px", borderRadius: "4px", color: "var(--text-main)" }} />
                         </div>
 
                         <div style={{ display: "flex", justifyContent: "space-between", marginTop: "0.5rem" }}>
@@ -790,15 +790,15 @@ export default function CommunalCalendar({ eventId, participantId, startDate, en
                         <div style={{ display: "flex", justifyContent: "flex-end", gap: "12px", marginTop: "1rem" }}>
                             <button 
                                 onClick={() => performGcalSync(false)}
-                                style={{ background: "rgba(255,255,255,0.05)", border: "1px solid var(--border-subtle)", color: "var(--text-main)", padding: "10px 24px", borderRadius: "8px", cursor: "pointer", fontWeight: 500, transition: "0.2s" }}
-                                onMouseOver={e => e.currentTarget.style.background = "rgba(255,255,255,0.1)"}
-                                onMouseOut={e => e.currentTarget.style.background = "rgba(255,255,255,0.05)"}
+                                style={{ background: "var(--subtle-gray)", border: "1px solid var(--border-subtle)", color: "var(--text-main)", padding: "10px 24px", borderRadius: "8px", cursor: "pointer", fontWeight: 500, transition: "0.2s" }}
+                                onMouseOver={e => e.currentTarget.style.background = "rgba(128,128,128,0.1)"}
+                                onMouseOut={e => e.currentTarget.style.background = "var(--subtle-gray)"}
                             >
                                 No
                             </button>
                             <button 
                                 onClick={() => performGcalSync(true)}
-                                style={{ background: "var(--accent-primary)", border: "1px solid var(--accent-primary)", color: "white", padding: "10px 24px", borderRadius: "8px", cursor: "pointer", fontWeight: 500, display: "flex", alignItems: "center", gap: "6px" }}
+                                style={{ background: "var(--accent-primary)", border: "1px solid var(--accent-primary)", color: "var(--text-main)", padding: "10px 24px", borderRadius: "8px", cursor: "pointer", fontWeight: 500, display: "flex", alignItems: "center", gap: "6px" }}
                             >
                                 Yes
                             </button>

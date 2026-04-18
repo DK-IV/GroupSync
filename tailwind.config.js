@@ -1,20 +1,23 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  darkMode: 'class',
   content: [
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
-],
+  ],
   theme: {
     extend: {
       colors: {
-        'dashboard-bg': '#18181b',
-        'surface-bg': '#27272a',
-        'subtle-gray': 'rgba(255, 255, 255, 0.05)',
-        'neon-red': '#ff003c',
-        'neon-amber': '#ffb000',
-        'neon-lime': '#39ff14',
-        'neon-blue': '#00e5ff',
+        'dashboard-bg': 'var(--bg-base)',
+        'surface-bg': 'var(--bg-surface)',
+        'subtle-gray': 'var(--subtle-gray)',
+        'text-main': 'var(--text-main)',
+        'text-muted': 'var(--text-muted)',
+        'neon-red': '#fb7185',
+        'neon-amber': '#fbbf24',
+        'neon-lime': '#86efac',
+        'neon-blue': '#22d3ee',
         'accent-primary': 'var(--accent-primary)',
         'accent-secondary': 'var(--accent-secondary)',
         'accent-tertiary': 'var(--accent-tertiary)',

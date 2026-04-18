@@ -9,11 +9,12 @@ export async function GET(request: Request) {
   }
 
   try {
-    // 1. YouTube Bypass (Microlink aggressively throttles YT)
+    // 1. YouTube Bypass (Direct YT Oembed blocks Node IPv6 natively sometimes, using noembed)
     if (targetUrl.includes('youtube.com') || targetUrl.includes('youtu.be')) {
-        const ytRes = await fetch(`https://www.youtube.com/oembed?url=${encodeURIComponent(targetUrl)}&format=json`);
+        const ytRes = await fetch(`https://noembed.com/embed?url=${encodeURIComponent(targetUrl)}`);
         if (ytRes.ok) {
             const ytData = await ytRes.json();
+            if (ytData.error) throw new Error(ytData.error);
             return NextResponse.json({
                 title: ytData.title,
                 description: "YouTube Video",

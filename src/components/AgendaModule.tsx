@@ -1,5 +1,6 @@
 "use client";
 
+
 import { useEffect, useState } from "react";
 import { supabase } from "@/utils/supabase";
 import { 
@@ -41,8 +42,8 @@ export default function AgendaModule({ eventId, startDate, endDate }: { eventId:
     
     // Synced configuration state
     const [dateStr, setDateStr] = useState("");
-    const [startTimeStr, setStartTimeStr] = useState("09:00");
-    const [endTimeStr, setEndTimeStr] = useState("17:00");
+    const [startTimeStr, setStartTimeStr] = useState("");
+    const [endTimeStr, setEndTimeStr] = useState("");
 
     const sensors = useSensors(
         useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -81,17 +82,8 @@ export default function AgendaModule({ eventId, startDate, endDate }: { eventId:
                     setDateStr(startDate); 
                 }
 
-                if (evData.agenda_start_time) { 
-                    setStartTimeStr(evData.agenda_start_time); 
-                } else { 
-                    updates.agenda_start_time = "09:00"; 
-                }
-
-                if (evData.agenda_end_time) { 
-                    setEndTimeStr(evData.agenda_end_time); 
-                } else { 
-                    updates.agenda_end_time = "17:00"; 
-                }
+                setStartTimeStr(evData.agenda_start_time || ""); 
+                setEndTimeStr(evData.agenda_end_time || ""); 
 
                 if (Object.keys(updates).length > 0) {
                     await supabase.from('events').update(updates).eq('id', eventId);
@@ -125,7 +117,7 @@ export default function AgendaModule({ eventId, startDate, endDate }: { eventId:
         if (field === 'agenda_start_time') setStartTimeStr(val);
         if (field === 'agenda_end_time') setEndTimeStr(val);
         // Persist to server for real-time collaboration
-        await supabase.from('events').update({ [field]: val }).eq('id', eventId);
+        await supabase.from('events').update({ [field]: val || null }).eq('id', eventId);
     };
 
     const handleDragEnd = async (event: DragEndEvent) => {
@@ -160,13 +152,21 @@ export default function AgendaModule({ eventId, startDate, endDate }: { eventId:
     };
 
     // Smart Time-Gap Calculus (Dynamic based on user input synced across clients)
-    let [startHour, startMinute] = startTimeStr.split(":").map(Number);
     let runningTime = new Date();
-    runningTime.setHours(startHour || 9, startMinute || 0, 0, 0);
-
-    let [endHour, endMinute] = endTimeStr.split(":").map(Number);
+    let hasStartTime = !!startTimeStr;
+    if (hasStartTime) {
+        let [startHour, startMinute] = startTimeStr.split(":").map(Number);
+        runningTime.setHours(startHour, startMinute || 0, 0, 0);
+    }
+    
     let masterEndTime = new Date();
-    masterEndTime.setHours(endHour || 17, endMinute || 0, 0, 0);
+    let hasEndTime = !!endTimeStr;
+    if (hasEndTime) {
+        let [endHour, endMinute] = endTimeStr.split(":").map(Number);
+        masterEndTime.setHours(endHour, endMinute || 0, 0, 0);
+    }
+
+    let accumulatedMins = 0;
 
     return (
         <div className="glass-panel animate-in" style={{ padding: "2rem" }}>
@@ -185,7 +185,7 @@ export default function AgendaModule({ eventId, startDate, endDate }: { eventId:
                                 min={startDate || undefined}
                                 max={endDate || undefined}
                                 onChange={e => updateEventBounds('agenda_date', e.target.value)} 
-                                style={{ background: "rgba(255,255,255,0.05)", border: "1px solid var(--border-subtle)", color: "white", padding: "4px 8px", borderRadius: "8px", outline: "none", cursor: "pointer", fontFamily: "inherit" }}
+                                style={{ background: "var(--subtle-gray)", border: "1px solid var(--border-subtle)", color: "var(--text-main)", padding: "4px 8px", borderRadius: "8px", outline: "none", cursor: "pointer", fontFamily: "inherit" }}
                             />
                         </div>
                         <div style={{ borderLeft: "1px solid var(--border-subtle)", height: "20px" }}></div>
@@ -195,8 +195,11 @@ export default function AgendaModule({ eventId, startDate, endDate }: { eventId:
                                 type="time" 
                                 value={startTimeStr} 
                                 onChange={e => updateEventBounds('agenda_start_time', e.target.value)} 
-                                style={{ background: "rgba(255,255,255,0.05)", border: "1px solid var(--border-subtle)", color: "white", padding: "4px 8px", borderRadius: "8px", outline: "none", cursor: "pointer", fontFamily: "inherit" }}
+                                style={{ background: "var(--subtle-gray)", border: "1px solid var(--border-subtle)", color: "var(--text-main)", padding: "4px 8px", borderRadius: "8px", outline: "none", cursor: "pointer", fontFamily: "inherit" }}
                             />
+                            {startTimeStr && (
+                                <button onClick={() => updateEventBounds('agenda_start_time', "")} style={{ background: "transparent", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: "0 4px", fontSize: "1.2rem", lineHeight: 1 }}>&times;</button>
+                            )}
                         </div>
                         <div style={{ borderLeft: "1px solid var(--border-subtle)", height: "20px" }}></div>
                         <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
@@ -205,18 +208,21 @@ export default function AgendaModule({ eventId, startDate, endDate }: { eventId:
                                 type="time" 
                                 value={endTimeStr} 
                                 onChange={e => updateEventBounds('agenda_end_time', e.target.value)} 
-                                style={{ background: "rgba(255,255,255,0.05)", border: "1px solid var(--border-subtle)", color: "white", padding: "4px 8px", borderRadius: "8px", outline: "none", cursor: "pointer", fontFamily: "inherit" }}
+                                style={{ background: "var(--subtle-gray)", border: "1px solid var(--border-subtle)", color: "var(--text-main)", padding: "4px 8px", borderRadius: "8px", outline: "none", cursor: "pointer", fontFamily: "inherit" }}
                             />
+                            {endTimeStr && (
+                                <button onClick={() => updateEventBounds('agenda_end_time', "")} style={{ background: "transparent", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: "0 4px", fontSize: "1.2rem", lineHeight: 1 }}>&times;</button>
+                            )}
                         </div>
                     </div>
                 </div>
-                <span style={{ fontSize: "0.85rem", color: "var(--text-muted)", background: "rgba(255,255,255,0.05)", padding: "4px 10px", borderRadius: "12px" }}>
+                <span style={{ fontSize: "0.85rem", color: "var(--text-muted)", background: "var(--subtle-gray)", padding: "4px 10px", borderRadius: "12px" }}>
                     {items.length} Activities
                 </span>
             </div>
             
             <p style={{ color: "var(--text-muted)", marginBottom: "2rem" }}>
-                Drag and drop your finalized brainstorms to build the locked itinerary. Assign durations and the timeline will automatically calculate your schedule!
+                Drag and drop your finalised brainstorms to build the locked itinerary. Assign durations and the timeline will automatically calculate your schedule!
             </p>
 
             {loading ? (
@@ -231,17 +237,27 @@ export default function AgendaModule({ eventId, startDate, endDate }: { eventId:
                         <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
                             {items.map((item, index) => {
                                 // Calculate time block for this specific item in the chain
-                                const startTimeStr = runningTime.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-                                runningTime = new Date(runningTime.getTime() + item.duration_mins * 60000);
-                                const endTimeStr = runningTime.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-                                
-                                const isOverflowing = runningTime > masterEndTime;
+                                let timeLabel = "";
+                                let isOverflowing = false;
+
+                                if (hasStartTime) {
+                                    const blockStartStr = runningTime.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+                                    runningTime = new Date(runningTime.getTime() + item.duration_mins * 60000);
+                                    const blockEndStr = runningTime.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+                                    timeLabel = `${blockStartStr} - ${blockEndStr}`;
+                                    isOverflowing = hasEndTime ? (runningTime > masterEndTime) : false;
+                                } else {
+                                    // Relative timeline if no start time specified
+                                    timeLabel = `T+ ${accumulatedMins}m to ${accumulatedMins + item.duration_mins}m`;
+                                    accumulatedMins += item.duration_mins;
+                                    isOverflowing = false;
+                                }
                                 
                                 return (
                                     <SortableAgendaCard 
                                         key={item.id} 
                                         item={item} 
-                                        timeLabel={`${startTimeStr} - ${endTimeStr}`}
+                                        timeLabel={timeLabel}
                                         isOverflowing={isOverflowing}
                                         onUpdateDuration={updateDuration}
                                         onRemove={removeFromAgenda}
@@ -271,7 +287,7 @@ function SortableAgendaCard({ item, timeLabel, isOverflowing, onUpdateDuration, 
             ? 'opacity-80 bg-black/60 shadow-[0_0_15px_rgba(0,229,255,0.3)] border-neon-blue'
             : isOverflowing 
                 ? 'bg-red-500/5 hover:bg-black/40 border-neon-red' 
-                : 'bg-black/20 hover:bg-black/40 border-transparent hover:border-white/20'
+                : 'bg-black/20 hover:bg-black/40 border-transparent hover:border-[var(--border-subtle)]'
     } border-y border-r border-y-white/5 border-r-white/5 backdrop-blur-md`;
 
     // Styling logic to forcefully fix browser/OS dropdown white-on-white text rendering issues
@@ -299,7 +315,7 @@ function SortableAgendaCard({ item, timeLabel, isOverflowing, onUpdateDuration, 
                 <select 
                     value={item.duration_mins}
                     onChange={(e) => onUpdateDuration(item.id, Number(e.target.value))}
-                    style={{ background: "rgba(255,255,255,0.05)", border: "1px solid var(--border-subtle)", color: "white", padding: "6px 12px", borderRadius: "8px", outline: "none", cursor: "pointer" }}
+                    style={{ background: "var(--subtle-gray)", border: "1px solid var(--border-subtle)", color: "var(--text-main)", padding: "6px 12px", borderRadius: "8px", outline: "none", cursor: "pointer" }}
                 >
                     <option value={15} style={optionStyle}>15 mins</option>
                     <option value={30} style={optionStyle}>30 mins</option>

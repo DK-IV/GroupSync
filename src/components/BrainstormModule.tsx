@@ -132,7 +132,7 @@ export default function BrainstormModule({ eventId, participantId }: { eventId: 
 
       {/* Tally Runoff Voting */}
       {ideas.length > 0 && (
-          <div className="glass-panel animate-in" style={{ padding: "1.5rem", background: "rgba(255,255,255,0.02)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div className="glass-panel animate-in" style={{ padding: "1.5rem", background: "var(--subtle-gray)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div>
                  <h3 style={{ margin: "0 0 5px 0", color: "var(--text-main)", display: "flex", alignItems: "center", gap: "8px" }}>Find best ideas <Check size={18} color="var(--accent-secondary)" /></h3>
                  <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--text-muted)" }}>Rank ideas 1, 2, 3... then calculate the winner!</p>
@@ -270,42 +270,33 @@ export default function BrainstormModule({ eventId, participantId }: { eventId: 
 function IdeaCard({ idea, idx, participantId, eventId, currentRank, maxRank, occupiedRanks, isTallied }: { idea: any, idx: number, participantId: string, eventId: string, currentRank?: number, maxRank: number, occupiedRanks: number[], isTallied?: boolean }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editDesc, setEditDesc] = useState(idea.description || "");
-  const [isSyncingRank, setIsSyncingRank] = useState(false);
+  const [editTitle, setEditTitle] = useState(idea.title || "");
+  const [editImage, setEditImage] = useState(idea.image_url || "");
 
   const canEdit = idea.participant_id === participantId;
 
-  const handleRankChange = async (newRank: number) => {
-      if (!participantId) return;
-      setIsSyncingRank(true);
-      if (newRank === 0) {
-          await supabase.from('idea_votes').delete().eq('idea_id', idea.id).eq('participant_id', participantId);
-      } else {
-          await supabase.from('idea_votes').upsert({
-              event_id: eventId,
-              idea_id: idea.id,
-              participant_id: participantId,
-              rank_value: newRank
-          }, { onConflict: 'idea_id, participant_id' });
-      }
-      setIsSyncingRank(false);
-  };
-
   const handleSave = async () => {
-    if (editDesc === idea.description) {
+    if (editDesc === idea.description && editTitle === idea.title && editImage === idea.image_url) {
         setIsEditing(false);
         return;
     }
-    const { error } = await supabase.from('brainstorm_ideas').update({ description: editDesc }).eq('id', idea.id);
+    const { error } = await supabase.from('brainstorm_ideas').update({ 
+        description: editDesc,
+        title: editTitle,
+        image_url: editImage
+    }).eq('id', idea.id);
     if (!error) {
        idea.description = editDesc; // Local optimistic update
+       idea.title = editTitle;
+       idea.image_url = editImage;
        setIsEditing(false);
     } else {
-       alert("Failed to save description");
+       alert("Failed to save changes");
     }
   };
 
   return (
-    <div className={`bg-surface-bg border border-white/5 rounded-2xl delay-${(idx % 3) + 1} animate-in flex flex-col overflow-hidden relative shadow-lg break-inside-avoid hover:shadow-xl transition-shadow duration-300`}>
+    <div className={`bg-surface-bg border border-[var(--border-subtle)] rounded-2xl delay-${(idx % 3) + 1} animate-in flex flex-col overflow-hidden relative shadow-lg break-inside-avoid hover:shadow-xl transition-shadow duration-300`}>
       
       {/* Tally Badge Overlay */}
       {isTallied && (
@@ -327,7 +318,7 @@ function IdeaCard({ idea, idx, participantId, eventId, currentRank, maxRank, occ
           className="w-full h-[220px] object-cover" 
         />
       ) : (
-        <div className="h-[220px] bg-white/5 flex items-center justify-center text-gray-400 font-medium">
+        <div className="h-[220px] bg-[var(--subtle-gray)] flex items-center justify-center text-text-muted font-medium">
           No Preview
         </div>
       )}
@@ -365,11 +356,16 @@ function IdeaCard({ idea, idx, participantId, eventId, currentRank, maxRank, occ
                
                {canEdit && !isEditing && (
                   <button 
-                      onClick={() => { setEditDesc(idea.description || ""); setIsEditing(true); }} 
+                      onClick={() => { 
+                          setEditDesc(idea.description || ""); 
+                          setEditTitle(idea.title || "");
+                          setEditImage(idea.image_url || "");
+                          setIsEditing(true); 
+                      }} 
                       style={{ background: "transparent", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: "4px", borderRadius: "4px", transition: "0.2s" }}
                       onMouseOver={(e) => e.currentTarget.style.color = "white"}
                       onMouseOut={(e) => e.currentTarget.style.color = "var(--text-muted)"}
-                      title="Edit Description"
+                      title="Edit Idea"
                   >
                       <Edit2 size={16} />
                   </button>
@@ -387,20 +383,34 @@ function IdeaCard({ idea, idx, participantId, eventId, currentRank, maxRank, occ
         
         {isEditing ? (
             <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", marginTop: "0.5rem", animation: "slideUpFade 0.2s" }}>
+                <input 
+                   className="input-glass" 
+                   value={editTitle} 
+                   onChange={(e) => setEditTitle(e.target.value)} 
+                   style={{ fontSize: "1.05rem", fontWeight: "bold", padding: "10px", margin: 0, width: "100%" }}
+                   placeholder="Idea Title..."
+                   autoFocus
+                />
+                <input 
+                   className="input-glass" 
+                   value={editImage} 
+                   onChange={(e) => setEditImage(e.target.value)} 
+                   style={{ fontSize: "0.9rem", padding: "10px", margin: 0, width: "100%" }}
+                   placeholder="Image URL..."
+                />
                 <textarea 
                    className="input-glass" 
                    value={editDesc} 
                    onChange={(e) => setEditDesc(e.target.value)} 
                    style={{ fontSize: "0.9rem", minHeight: "80px", resize: "vertical", padding: "10px", margin: 0, width: "100%" }}
                    placeholder="Add a description or notes..."
-                   autoFocus
                    onKeyDown={(e) => {
                        if (e.key === 'Escape') setIsEditing(false);
                    }}
                 />
                 <div style={{ display: "flex", justifyContent: "flex-end", gap: "0.5rem" }}>
-                    <button onClick={() => setIsEditing(false)} style={{ background: "transparent", border: "1px solid var(--border-subtle)", color: "white", padding: "6px 12px", borderRadius: "6px", cursor: "pointer", fontSize: "0.85rem" }}>Cancel</button>
-                    <button onClick={handleSave} style={{ background: "var(--accent-secondary)", border: "none", color: "white", padding: "6px 12px", borderRadius: "6px", cursor: "pointer", display: "flex", alignItems: "center", gap: "4px", fontSize: "0.85rem" }}><Check size={14} /> Save</button>
+                    <button onClick={() => setIsEditing(false)} style={{ background: "transparent", border: "1px solid var(--border-subtle)", color: "var(--text-main)", padding: "6px 12px", borderRadius: "6px", cursor: "pointer", fontSize: "0.85rem" }}>Cancel</button>
+                    <button onClick={handleSave} style={{ background: "var(--accent-secondary)", border: "none", color: "var(--text-main)", padding: "6px 12px", borderRadius: "6px", cursor: "pointer", display: "flex", alignItems: "center", gap: "4px", fontSize: "0.85rem" }}><Check size={14} /> Save</button>
                 </div>
             </div>
         ) : (
@@ -427,26 +437,45 @@ function VotingControls({ ideaId, participantId, eventId, currentRank, maxRank, 
           const { error } = await supabase.from("idea_votes").delete().eq('idea_id', ideaId).eq('participant_id', participantId);
           if (error) alert("Error un-ranking: " + error.message);
       } else {
-          // Upsert new rank
-          const { error } = await supabase.from("idea_votes").upsert({
-              idea_id: ideaId,
-              participant_id: participantId,
-              event_id: eventId,
-              rank_value: rank
-          }, { onConflict: 'idea_id, participant_id' });
-          if (error) alert("Error casting vote: " + error.message);
+          try {
+              if (rank !== 0 && occupiedRanks.includes(rank)) {
+                  // The user selected a rank they already used for another idea.
+                  // Delete the old idea's vote for this rank first.
+                  await supabase.from("idea_votes")
+                      .delete()
+                      .eq('participant_id', participantId)
+                      .eq('event_id', eventId)
+                      .eq('rank_value', rank);
+              }
+
+              if (rank === 0) {
+                  const { error } = await supabase.from("idea_votes").delete().eq('idea_id', ideaId).eq('participant_id', participantId);
+                  if (error) throw error;
+              } else {
+                  // Upsert new rank
+                  const { error } = await supabase.from("idea_votes").upsert({
+                      idea_id: ideaId,
+                      participant_id: participantId,
+                      event_id: eventId,
+                      rank_value: rank
+                  }, { onConflict: 'idea_id, participant_id' });
+                  if (error) throw error;
+              }
+          } catch(e: any) {
+              alert("Error casting vote: " + e.message);
+          }
       }
       setIsSyncing(false);
   };
 
   return (
-     <div className={`p-4 border-t border-white/5 flex justify-between items-center transition-colors duration-300 ${currentRank === 1 ? 'bg-neon-lime/10' : 'bg-black/30'}`}>
-        <span className="text-sm text-gray-400 font-medium">Rank Choice:</span>
+     <div className={`p-4 border-t border-[var(--border-subtle)] flex justify-between items-center transition-colors duration-300 ${currentRank === 1 ? 'bg-neon-lime/10' : 'bg-black/30'}`}>
+        <span className="text-sm text-text-muted font-medium">Rank Choice:</span>
         <select
             disabled={isSyncing}
             value={currentRank || 0}
             onChange={(e) => handleVote(Number(e.target.value))}
-            className={`px-3 py-2 rounded-lg text-sm font-bold outline-none cursor-pointer border transition-colors ${currentRank === 1 ? 'bg-neon-lime text-black border-neon-lime shadow-[0_0_15px_rgba(57,255,20,0.4)]' : 'bg-white/10 text-white border-white/10'}`}
+            className={`px-3 py-2 rounded-lg text-sm font-bold outline-none cursor-pointer border transition-colors ${currentRank === 1 ? 'bg-neon-lime text-black border-neon-lime shadow-[0_0_15px_rgba(57,255,20,0.4)]' : 'bg-[rgba(128,128,128,0.1)] text-text-main border-[var(--border-subtle)]'}`}
         >
             <option value={0} style={{ color: "black", fontWeight: "normal" }}>-- Blank --</option>
             {Array.from({ length: maxRank }, (_, i) => i + 1).map(n => {
@@ -456,9 +485,8 @@ function VotingControls({ ideaId, participantId, eventId, currentRank, maxRank, 
                         key={n} 
                         value={n} 
                         style={{ color: "black" }} 
-                        disabled={inUse}
                     >
-                        {inUse ? `Rank ${n} (In Use)` : `#${n} Choice`}
+                        {inUse ? `Rank ${n} (Swap)` : `#${n} Choice`}
                     </option>
                 );
             })}

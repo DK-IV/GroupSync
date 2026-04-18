@@ -175,9 +175,9 @@ export default function EventPlanningRoom() {
       <header style={{ marginBottom: "3rem", display: "flex", gap: "1.5rem", alignItems: "center" }}>
           
           <button 
-            onClick={() => router.push('/dashboard')}
-            style={{ background: "transparent", border: "1px solid var(--border-subtle)", color: "white", padding: "10px", borderRadius: "12px", cursor: "pointer", transition: "all 0.2s" }}
-            onMouseOver={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.1)"}
+            onClick={() => { window.location.href = '/dashboard'; }}
+            style={{ background: "transparent", border: "1px solid var(--border-subtle)", color: "var(--text-main)", padding: "10px", borderRadius: "12px", cursor: "pointer", transition: "all 0.2s" }}
+            onMouseOver={(e) => e.currentTarget.style.background = "var(--subtle-gray)"}
             onMouseOut={(e) => e.currentTarget.style.background = "transparent"}
           >
               <ArrowLeft size={20} />
@@ -222,9 +222,9 @@ export default function EventPlanningRoom() {
                  {user && user.is_anonymous && (
                      <button 
                         onClick={() => router.push('/login')} 
-                        style={{ display: "flex", alignItems: "center", gap: "6px", background: "rgba(255,255,255,0.05)", border: "1px solid var(--border-subtle)", color: "var(--text-main)", padding: "8px 12px", borderRadius: "8px", cursor: "pointer", fontSize: "0.9rem", fontWeight: "bold", marginLeft: "auto", transition: "all 0.2s" }}
-                        onMouseOver={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.1)"}
-                        onMouseOut={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.05)"}
+                        style={{ display: "flex", alignItems: "center", gap: "6px", background: "var(--subtle-gray)", border: "1px solid var(--border-subtle)", color: "var(--text-main)", padding: "8px 12px", borderRadius: "8px", cursor: "pointer", fontSize: "0.9rem", fontWeight: "bold", marginLeft: "auto", transition: "all 0.2s" }}
+                        onMouseOver={(e) => e.currentTarget.style.background = "rgba(128,128,128,0.1)"}
+                        onMouseOut={(e) => e.currentTarget.style.background = "var(--subtle-gray)"}
                      >
                         <UserPlus size={16} /> Claim Account
                      </button>
@@ -247,7 +247,51 @@ export default function EventPlanningRoom() {
                  </button>
               </div>
             )}
-            <p style={{ margin: "5px 0 0 0", color: "var(--text-muted)", fontSize: "0.95rem" }}>Event Planning Room</p>
+            <div style={{ display: "flex", gap: "10px", alignItems: "center", margin: "5px 0 0 0" }}>
+                <p style={{ margin: 0, color: "var(--text-muted)", fontSize: "0.95rem" }}>Event Planning Room</p>
+                {isHost && (
+                    <select
+                        value={eventDetails.status || 'planning'}
+                        onChange={async (e) => {
+                            const newStatus = e.target.value;
+                            setEventDetails({ ...eventDetails, status: newStatus });
+                            const { error } = await supabase.from("events").update({ status: newStatus }).eq("id", eventId);
+                            if (error) {
+                                alert("Failed to save to DB: " + error.message);
+                            }
+                        }}
+                        style={{
+                            background: "var(--subtle-gray)",
+                            border: "1px solid var(--border-subtle)",
+                            color: "var(--text-main)",
+                            padding: "2px 8px",
+                            borderRadius: "12px",
+                            fontSize: "0.80rem",
+                            fontWeight: "bold",
+                            outline: "none",
+                            cursor: "pointer",
+                            textTransform: "uppercase"
+                        }}
+                    >
+                        <option value="planning" style={{ color: "#f8fafc", background: "#0f172a" }}>PLANNING</option>
+                        <option value="planned" style={{ color: "#f8fafc", background: "#0f172a" }}>PLANNED</option>
+                    </select>
+                )}
+                {!isHost && eventDetails.status && (
+                    <span style={{
+                            background: "var(--subtle-gray)",
+                            border: "1px solid var(--border-subtle)",
+                            color: "var(--text-main)",
+                            padding: "2px 8px",
+                            borderRadius: "12px",
+                            fontSize: "0.80rem",
+                            fontWeight: "bold",
+                            textTransform: "uppercase"
+                    }}>
+                        {eventDetails.status}
+                    </span>
+                )}
+            </div>
           </div>
 
       </header>

@@ -3,6 +3,21 @@
 @tailwind utilities;
 
 :root {
+  --bg-base: #f8fafc;
+  --bg-surface: rgba(255, 255, 255, 0.8);
+  --bg-surface-hover: rgba(241, 245, 249, 0.8);
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --accent-primary: #3b82f6;
+  --accent-secondary: #60a5fa;
+  --accent-tertiary: #8b5cf6;
+  --border-subtle: rgba(0, 0, 0, 0.1);
+  --glow-primary: rgba(59, 130, 246, 0.4);
+  --glow-secondary: rgba(96, 165, 250, 0.4);
+  --subtle-gray: rgba(0, 0, 0, 0.05);
+}
+
+.dark {
   --bg-base: #18181b;
   --bg-surface: rgba(39, 39, 42, 0.7);
   --bg-surface-hover: rgba(30, 41, 59, 0.8);
@@ -14,6 +29,7 @@
   --border-subtle: rgba(255, 255, 255, 0.08);
   --glow-primary: rgba(217, 102, 58, 0.4);
   --glow-secondary: rgba(212, 163, 115, 0.4);
+  --subtle-gray: rgba(255, 255, 255, 0.05);
 }
 
 @layer base {
@@ -24,7 +40,7 @@
   }
 
   body {
-    @apply bg-dashboard-bg text-white font-sans antialiased min-h-screen selection:bg-neon-blue selection:text-black;
+    @apply bg-dashboard-bg text-text-main font-sans antialiased min-h-screen selection:bg-neon-blue selection:text-black;
   }
 }
 
@@ -94,7 +110,7 @@
 
 /* Typography styles */
 h1 { font-size: 3.5rem; font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; margin-bottom: 1.5rem; }
-h2 { font-size: 1.5rem; font-weight: 600; margin-bottom: 0.5rem; color: #fff; }
+h2 { font-size: 1.5rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-main); }
 p { color: var(--text-muted); margin-bottom: 1rem; }
 
 /* Micro-animations */

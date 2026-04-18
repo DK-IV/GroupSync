@@ -94,7 +94,11 @@ export default function LoginPage() {
       setLoading(true);
       setError(null);
       
-      const opts = { redirectTo: `${window.location.origin}/dashboard` };
+      const opts: any = { 
+          redirectTo: `${window.location.origin}/dashboard`,
+          scopes: 'https://www.googleapis.com/auth/calendar.readonly',
+          queryParams: { prompt: 'consent' }
+      };
 
       if (isAnonymous) {
           const { error } = await supabase.auth.linkIdentity({
