@@ -9,7 +9,7 @@ export default function Home() {
         <h1 className="text-transparent bg-clip-text bg-gradient-to-br from-accent-primary via-accent-secondary to-accent-tertiary text-6xl font-extrabold tracking-tight mb-8 pb-2 animate-in">GroupSync</h1>
         <p className="animate-in delay-100 text-xl max-w-[600px] mx-auto mb-12 text-text-muted">
           Effortlessly coordinate your group events. Combine availability, brainstorm ideas, 
-          and auto-build the perfect agenda in one stunning workspace.
+          and build the perfect agenda in one stunning workspace.
         </p>
         <div className="animate-in delay-200">
           <Link href="/login" className="bg-gradient-to-br from-accent-primary to-accent-secondary text-white border-none py-4 px-8 rounded-full text-lg font-semibold cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(236,72,153,0.4)] relative overflow-hidden inline-flex items-center gap-2">
@@ -26,9 +26,9 @@ export default function Home() {
                 <div className="bg-[var(--subtle-gray)] w-16 h-16 rounded-2xl flex items-center justify-center border border-[var(--border-subtle)]">
                     <Users size={32} className="text-accent-secondary" />
                 </div>
-                <h2 className="text-4xl font-extrabold text-text-main">Your Command Center</h2>
+                <h2 className="text-4xl font-extrabold text-text-main">Your Dashboard</h2>
                 <p className="text-xl text-text-muted leading-relaxed">
-                   Launch your planning operations from a stunning, centralized dashboard. Add beautiful featured images to your events and keep track of everything going from "Planning" to "Planned".
+                   Launch your events that you need planned from a stunning, centralised dashboard. Add beautiful images to your events and keep track of everything going on across all your devices.
                 </p>
             </div>
             <div className="flex-[1.5] w-full">
@@ -46,7 +46,7 @@ export default function Home() {
                 </div>
                 <h2 className="text-4xl font-extrabold text-text-main">Communal Availability</h2>
                 <p className="text-xl text-text-muted leading-relaxed">
-                    Stop the endless texting trying to find a weekend that works. Visually stack everyone's schedules and instantly lock in on the "Green Zones" where everyone is free.
+                    Stop the endless texting trying to find a weekend that works. Visually stack everyone's schedules and instantly lock in on the days where everyone is free.
                 </p>
             </div>
             <div className="flex-[1.5] w-full">
@@ -64,7 +64,7 @@ export default function Home() {
                 </div>
                 <h2 className="text-4xl font-extrabold text-text-main">Visual Brainstorming</h2>
                 <p className="text-xl text-text-muted leading-relaxed">
-                    Toss YouTube videos, Instagram Reels, and TikToks straight into the hub. They unfurl beautifully, turning your idea list into an interactive visual moodboard equipped with ranked voting!
+                    Suggest what to do and throw in YouTube videos, Instagram Reels, and TikToks straight into the brainstorm. Turn your idea list into an interactive visual moodboard equipped with ranked voting!
                 </p>
             </div>
             <div className="flex-[1.5] w-full">
@@ -82,7 +82,7 @@ export default function Home() {
                 </div>
                 <h2 className="text-4xl font-extrabold text-text-main">Smart Agendas</h2>
                 <p className="text-xl text-text-muted leading-relaxed">
-                    Convert your highest voted ideas into a master schedule instantly. Drag and drop events to automatically calculate timelines so everyone knows exactly where to be and when.
+                    Convert your highest voted ideas into a master schedule instantly. Drag and drop events to create the agenda for the day on a timeline so everyone knows exactly whats happening.
                 </p>
             </div>
             <div className="flex-[1.5] w-full">
